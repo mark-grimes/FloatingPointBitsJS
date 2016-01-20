@@ -43,6 +43,7 @@
 		setBits();
 		setBinary();
 		setHex();
+		setDecimal(); // set self in case gibberish was entered. Also gives exact representation.
 	}
 
 	function setDecimal()
@@ -62,6 +63,7 @@
 		setBits();
 		setDecimal();
 		setHex();
+		setBinary(); // set self in case gibberish was entered.
 	}
 
 	function setBinary()
@@ -83,6 +85,7 @@
 		setBits();
 		setDecimal();
 		setBinary();
+		setHex(); // set self in case gibberish was entered.
 	}
 
 	function setHex()
