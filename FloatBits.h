@@ -11,8 +11,10 @@ public:
 	bool get( size_t bit ) const;
 	void set( size_t bit, bool value );
 	void valueFrom( float value );
+	void bitValueFromInt( unsigned int value );
 	float value();
 	std::string asBinary();
+	unsigned long asInt();
 protected:
 	std::bitset<sizeof(float)*8> bits_;
 };
