@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>Floating point bit test</title>
+<script language="javascript" type="text/javascript" src="FloatingPoint.js"></script>
+<script language="javascript" type="text/javascript">
+
+	var floatNumber=new Module.FloatBits;
+
+	function init()
+	{
+		checkboxDiv=document.getElementById("bitCheckboxes");
+		for( index=floatNumber.size()-1; index>=0; --index )
+		{
+			var x = document.createElement("INPUT");
+			x.setAttribute("type", "checkbox");
+			x.setAttribute("id", "bit"+index);
+			x.setAttribute("onclick", "bitChanged("+index+")" );
+			checkboxDiv.appendChild(x);
+		}
+		decimalChanged();
+	}
+
+	function bitChanged( bitNumber )
+	{
+		floatNumber.set(bitNumber,document.getElementById("bit"+bitNumber).checked)
+		setDecimal();
+	}
+	
+	function setBits()
+	{
+		for( index=0; index<floatNumber.size(); ++index )
+		{
+			document.getElementById("bit"+index).checked=floatNumber.get(index);
+		}
+	}
+	
+	function decimalChanged()
+	{
+		floatNumber.valueFrom( parseFloat(document.getElementById("decimal").value) );
+		setBits();
+	}
+	
+	function setDecimal()
+	{
+		document.getElementById("decimal").value=floatNumber.value();
+	}
+
+	window.addEventListener("load", init, false);
+</script>
+<h2>Simple example of using the FloatingPoint library to find floats from their binary representation</h2>
+<p>
+	<div id="bitCheckboxes"></div>
+	<br>
+	Decimal <input type="number" id="decimal" size=70 value="-80" onchange="decimalChanged()"/>
+	<br>
+	The old page for comparison:
+	<iframe class="oldCode" src="http://www.h-schmidt.net/FloatConverter/IEEE754.html" width="100%" height="500"></iframe>
+</p>
