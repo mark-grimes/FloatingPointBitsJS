@@ -49,7 +49,12 @@
 
 	function setDecimal()
 	{
-		document.getElementById("decimal").value=floatNumber.value().toString(10);
+		// Javascript toString doesn't distinguish between -0 and +0,
+		// so need to add that by hand.
+		value=floatNumber.value();
+		asString=value.toString(10)
+		if( value==0 && floatNumber.get(31)==true ) asString="-"+asString;
+		document.getElementById("decimal").value=asString;
 	}
 
 	function binaryChanged()
@@ -65,8 +70,13 @@
 	function setBinary()
 	{
 		value=floatNumber.asInt();
+		// Despite the C++ returning an unsigned, javascript insists on converting it to signed
 		if( value<0 ) value=value+Math.pow(2,32);
-		document.getElementById("binary").value=value.toString(2);
+		// Check to see if it needs to be padded with leading zeros
+		asString=value.toString(2);
+		while( asString.length<32 ) asString="0"+asString;
+		// finally set the text box to the new value
+		document.getElementById("binary").value=asString;
 	}
 
 	function hexChanged()
@@ -82,13 +92,22 @@
 	function setHex()
 	{
 		value=floatNumber.asInt();
+		// Despite the C++ returning an unsigned, javascript insists on converting it to signed
 		if( value<0 ) value=value+Math.pow(2,32);
-		document.getElementById("hex").value="0x"+value.toString(16);
+		// Check to see if it needs to be padded with leading zeros
+		asString=value.toString(16);
+		while( asString.length<8 ) asString="0"+asString;
+		document.getElementById("hex").value="0x"+asString;
 	}
 
 	function setDouble()
 	{
-		document.getElementById("double").value=floatNumber.value().toString(10);
+		// Javascript toString doesn't distinguish between -0 and +0,
+		// so need to add that by hand.
+		value=floatNumber.value();
+		asString=value.toString(10)
+		if( value==0 && floatNumber.get(31)==true ) asString="-"+asString;
+		document.getElementById("double").value=asString;
 	}
 
 	window.addEventListener("load", init, false);
