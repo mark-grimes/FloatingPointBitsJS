@@ -37,7 +37,7 @@ add_custom_command( OUTPUT ${html_destination_file} ${CLIENT_CODE_DIR}
 
 add_custom_command( OUTPUT ${client_destination_file} ${CLIENT_CODE_DIR}
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${CLIENT_CODE_DIR}
-	COMMAND ${EMCXX} -O0 ${client_source_files} -o ${client_destination_file}
+	COMMAND ${EMCXX} -O2 ${client_source_files} -o ${client_destination_file}
 		-std=c++11
 		--bind
 		-I ${CMAKE_SOURCE_DIR}
