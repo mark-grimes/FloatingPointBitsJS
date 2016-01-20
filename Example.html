@@ -8,6 +8,7 @@
 
 	function init()
 	{
+		// Add the checkboxes for the bit representation
 		checkboxDiv=document.getElementById("bitCheckboxes");
 		for( index=floatNumber.size()-1; index>=0; --index )
 		{
@@ -17,12 +18,16 @@
 			x.setAttribute("onclick", "bitChanged("+index+")" );
 			checkboxDiv.appendChild(x);
 		}
+		// set everything to valid initial values by pretending
+		// the decimal box has just been updated.
 		decimalChanged();
 	}
 
 	function bitChanged( bitNumber )
 	{
-		floatNumber.set(bitNumber,document.getElementById("bit"+bitNumber).checked)
+		// Flip the bit represented by this checkbox
+		floatNumber.set(bitNumber,document.getElementById("bit"+bitNumber).checked);
+		// Then update all the other representations
 		setDecimal();
 		setBinary();
 		setHex();
@@ -103,7 +108,7 @@
 </script>
 <h2>Simple example of using the FloatingPoint library to find floats from their binary representation</h2>
 <p>
-	<div id="bitCheckboxes"></div>
+	<div id="bitCheckboxes"></div> <!--  These are added programmatically when the page loads -->
 	<br>
 	<table>
 		<tr><td>Decimal <td><input type="text" id="decimal" size=70 value="0" onchange="decimalChanged()"/>
