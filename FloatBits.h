@@ -4,7 +4,7 @@
 #include <bitset>
 #include <string>
 
-class FloatBits //: public BitArray<sizeof(float)*8>
+class FloatBits
 {
 public:
 	constexpr size_t size() const { return bits_.size(); }
