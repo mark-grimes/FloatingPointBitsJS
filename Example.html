@@ -24,8 +24,11 @@
 	{
 		floatNumber.set(bitNumber,document.getElementById("bit"+bitNumber).checked)
 		setDecimal();
+		setBinary();
+		setHex();
+		setDouble();
 	}
-	
+
 	function setBits()
 	{
 		for( index=0; index<floatNumber.size(); ++index )
@@ -33,16 +36,59 @@
 			document.getElementById("bit"+index).checked=floatNumber.get(index);
 		}
 	}
-	
+
 	function decimalChanged()
 	{
-		floatNumber.valueFrom( parseFloat(document.getElementById("decimal").value) );
+		value=parseFloat(document.getElementById("decimal").value);
+		floatNumber.valueFrom(value);
 		setBits();
+		setBinary();
+		setHex();
+		setDouble();
 	}
-	
+
 	function setDecimal()
 	{
-		document.getElementById("decimal").value=floatNumber.value();
+		document.getElementById("decimal").value=floatNumber.value().toString(10);
+	}
+
+	function binaryChanged()
+	{
+		value=parseInt(document.getElementById("binary").value,2);
+		floatNumber.bitValueFromInt(value);
+		setBits();
+		setDecimal();
+		setHex();
+		setDouble();
+	}
+
+	function setBinary()
+	{
+		value=floatNumber.asInt();
+		if( value<0 ) value=value+Math.pow(2,32);
+		document.getElementById("binary").value=value.toString(2);
+	}
+
+	function hexChanged()
+	{
+		value=parseInt(document.getElementById("hex").value,16);
+		floatNumber.bitValueFromInt(value);
+		setBits();
+		setDecimal();
+		setBinary();
+		setDouble();
+	}
+
+	function setHex()
+	{
+		value=floatNumber.asInt();
+		if( value<0 ) value=value+Math.pow(2,32);
+		document.getElementById("hex").value="0x"+value.toString(16);
+	}
+
+	function setDouble()
+	{
+		document.getElementById("double").value=floatNumber.value().toString(10);
 	}
 
 	window.addEventListener("load", init, false);
@@ -51,7 +97,12 @@
 <p>
 	<div id="bitCheckboxes"></div>
 	<br>
-	Decimal <input type="number" id="decimal" size=70 value="-80" onchange="decimalChanged()"/>
+	<table>
+		<tr><td>Decimal <td><input type="text" id="decimal" size=70 value="0" onchange="decimalChanged()"/>
+		<tr><td>Binary <td><input type="text" id="binary" size=70 onchange="binaryChanged()"/>
+		<tr><td>Hex <td><input type="text" id="hex" size=70 onchange="hexChanged()"/>
+		<tr><td>After casting <td><input type="text" id="double" size=70 disabled=true/>
+	</table>
 	<br>
 	The old page for comparison:
 	<iframe class="oldCode" src="http://www.h-schmidt.net/FloatConverter/IEEE754.html" width="100%" height="500"></iframe>
