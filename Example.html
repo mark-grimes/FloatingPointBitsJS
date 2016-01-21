@@ -5,10 +5,19 @@
 <script language="javascript" type="text/javascript">
 
 	var moduleInstance=window.FloatingPoint();
-	var floatNumber=new moduleInstance.FloatBits;
+	// This variable will be the floating point number representation.
+	// However it can't be initialised yet because resources for the
+	// moduleInstance are loaded asynchronously. So it can only be
+	// created once everything has been loaded, e.g. in the init
+	// function.
+	var floatNumber;
 
 	function init()
 	{
+		// moduleInstance will have been loaded by now, so it's safe
+		// to use.
+		floatNumber=new moduleInstance.FloatBits;
+
 		// Add the checkboxes for the bit representation
 		checkboxDiv=document.getElementById("bitCheckboxes");
 		for( index=floatNumber.size()-1; index>=0; --index )
