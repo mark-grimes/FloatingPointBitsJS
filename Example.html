@@ -4,7 +4,8 @@
 <script language="javascript" type="text/javascript" src="FloatingPoint.js"></script>
 <script language="javascript" type="text/javascript">
 
-	var floatNumber=new FloatingPoint.FloatBits;
+	var moduleInstance=window.FloatingPoint();
+	var floatNumber=new moduleInstance.FloatBits;
 
 	function init()
 	{
