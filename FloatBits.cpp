@@ -1,4 +1,6 @@
 #include "FloatBits.h"
+#include <sstream>
+#include <iomanip>
 
 bool FloatBits::get( size_t bit ) const
 {
@@ -57,6 +59,20 @@ float FloatBits::value()
 std::string FloatBits::asBinary()
 {
 	return bits_.to_string();
+}
+
+std::string FloatBits::asHex()
+{
+	std::stringstream output;
+	output << std::hex << std::setw(8) << std::setfill('0') << bits_.to_ulong();
+	return output.str();
+}
+
+std::string FloatBits::asDecimal()
+{
+	std::stringstream output;
+	output << std::dec << value();
+	return output.str();
 }
 
 unsigned long FloatBits::asInt()

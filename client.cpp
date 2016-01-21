@@ -13,6 +13,8 @@ EMSCRIPTEN_BINDINGS(my_module)
 			.function("bitValueFromInt",&FloatBits::bitValueFromInt)
 			.function("value",&FloatBits::value)
 			.function("asBinary",&FloatBits::asBinary)
+			.function("asHex",&FloatBits::asHex)
+			.function("asDecimal",&FloatBits::asDecimal)
 			.function("asInt",&FloatBits::asInt);
 }
 

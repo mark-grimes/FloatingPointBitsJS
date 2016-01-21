@@ -14,6 +14,8 @@ public:
 	void bitValueFromInt( unsigned int value );
 	float value();
 	std::string asBinary();
+	std::string asHex();
+	std::string asDecimal();
 	unsigned long asInt();
 protected:
 	std::bitset<sizeof(float)*8> bits_;
