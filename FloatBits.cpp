@@ -56,12 +56,7 @@ float FloatBits::value()
 
 std::string FloatBits::asBinary()
 {
-#ifdef __EMSCRIPTEN__
-	// Emscripten seems to have trouble setting any string
-	return std::string();
-#else
 	return bits_.to_string();
-#endif
 }
 
 unsigned long FloatBits::asInt()
