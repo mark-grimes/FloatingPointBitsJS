@@ -66,19 +66,5 @@ std::string FloatBits::asBinary()
 
 unsigned long FloatBits::asInt()
 {
-//	unsigned int returnValue=0;
-//	unsigned char* value=reinterpret_cast<unsigned char*>(&returnValue);
-//	for( size_t byteIndex=0; byteIndex<sizeof(unsigned int); ++byteIndex )
-//	{
-//		for( size_t bitIndex=0; bitIndex<8; ++bitIndex )
-//		{
-//			size_t bit=byteIndex*8+bitIndex;
-//			if( bits_[bit] )
-//			{
-//				value[byteIndex]=value[byteIndex]|(0x1<<bitIndex);
-//			}
-//		}
-//	}
-//	return returnValue;
 	return bits_.to_ulong();
 }
