@@ -12,7 +12,7 @@ EMSCRIPTEN_BINDINGS(my_module)
 			.function("valueFrom",&FloatBits::valueFrom)
 			.function("bitValueFromInt",&FloatBits::bitValueFromInt)
 			.function("value",&FloatBits::value)
-			//.function("asBinary",&FloatBits::asBinary)
+			.function("asBinary",&FloatBits::asBinary)
 			.function("asInt",&FloatBits::asInt);
 }
 
