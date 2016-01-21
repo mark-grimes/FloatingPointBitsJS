@@ -39,6 +39,7 @@ add_custom_command( OUTPUT ${html_destination_file}
 add_custom_command( OUTPUT ${client_destination_file}
 	COMMAND ${EMCXX} -O2 ${client_source_files} -o ${client_destination_file}
 		-s EXPORT_NAME="'${PROJECT_NAME}'"
+		-s MODULARIZE=1
 		-std=c++11
 		--bind
 		-I ${CMAKE_SOURCE_DIR}
