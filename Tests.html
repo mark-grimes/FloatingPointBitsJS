@@ -15,302 +15,305 @@
 	<div id="qunit"></div>
 	<div id="qunit-fixture"></div>
 	<script src="//code.jquery.com/qunit/qunit-1.20.0.js"></script>
-	<script language="javascript" type="text/javascript" src="FloatingPoint.js"></script>
+	<script src="FloatingPoint.js"></script>
 	<script>
 		var moduleInstance=window.FloatingPoint();
 		
-		// Since the FloatingPoint module is loaded asynchronously, need
-		// to wrap the tests in a window loaded listener so that it only
-		// runs once the module has loaded.
-		window.addEventListener("load", function()
+		/*
+		 * QUnit normally starts when the window.onload event is fired. However, on chrome
+		 * this can fire early. This will cause errors if the asynchronous loading of the
+		 * FloatingPoint module hasn't finished. To get around this set a function called
+		 * onRuntimeInitialized which will be automatically called when the module is ready.
+		 */
+		QUnit.config.autostart = false;
+		moduleInstance.onRuntimeInitialized=function() { QUnit.start(); };
+
+		QUnit.test("Make sure the bit getters and setters work properly", function(assert)
 		{
-			QUnit.test("Make sure the bit getters and setters work properly", function(assert)
+			/* Use some predefined strings of bit representations to make sure setting bits works,
+			 * and that retrieving them gives the correct result. Also check the binary string
+			 * returned is correct
+			 */
+			var testNumbers=[ "00111111101110011100010110001101","11000010000000000000000000000000",
+			                  "11000011011010100011110000100100","01011001001010011010011110000001",
+			                  "00001010111111110010000001101010","01111100000011111010010100111110",
+			                  "01001000011010011010010000000000","00111110000011010111000110100000",
+			                  "01001010000011101111011111111100","11111111100000000000000000000000"];
+
+			var myNumber=new moduleInstance.FloatBits;
+
+			for( index=0; index<testNumbers.length; ++index )
 			{
-				/* Use some predefined strings of bit representations to make sure setting bits works,
-				 * and that retrieving them gives the correct result. Also check the binary string
-				 * returned is correct
-				 */
-				var testNumbers=[ "00111111101110011100010110001101","11000010000000000000000000000000",
-				                  "11000011011010100011110000100100","01011001001010011010011110000001",
-				                  "00001010111111110010000001101010","01111100000011111010010100111110",
-				                  "01001000011010011010010000000000","00111110000011010111000110100000",
-				                  "01001010000011101111011111111100","11111111100000000000000000000000"];
-
-				var myNumber=new moduleInstance.FloatBits;
-
-				for( index=0; index<testNumbers.length; ++index )
+				testCase=testNumbers[index];
+				// Set all the bits
+				for( bitIndex=0; bitIndex<myNumber.size(); ++bitIndex )
 				{
-					testCase=testNumbers[index];
-					// Set all the bits
-					for( bitIndex=0; bitIndex<myNumber.size(); ++bitIndex )
-					{
-						if( testCase.substring(31-bitIndex,31-bitIndex+1)=="1" ) myNumber.set(bitIndex,true);
-						else myNumber.set(bitIndex,false);
-					}
-					// Then check they were all set correctly
-					for( bitIndex=0; bitIndex<myNumber.size(); ++bitIndex )
-					{
-						assert.equal(myNumber.get(bitIndex),testCase.substring(31-bitIndex,31-bitIndex+1),"Bit "+bitIndex+" is set correctly for the "+index+"th value");
-					}
-					// Also check the binary string
-					assert.strictEqual(myNumber.asBinary(),testCase,"asBinary() gives the correct string for the "+index+"th value");
+					if( testCase.substring(31-bitIndex,31-bitIndex+1)=="1" ) myNumber.set(bitIndex,true);
+					else myNumber.set(bitIndex,false);
 				}
-
-				myNumber.delete();
-			});
-			QUnit.test("Test creation of a floating point bit representation", function(assert)
-			{
-				var myNumber=new moduleInstance.FloatBits;
-				assert.ok(myNumber,"FloatBits was created successfully");
-				assert.strictEqual(myNumber.size(),32,"FloatBits has the correct number of bits");
-				assert.strictEqual(myNumber.value(),0,"FloatBits has value 0 on creation");
-				for( bit=0; bit<myNumber.size(); ++bit)
+				// Then check they were all set correctly
+				for( bitIndex=0; bitIndex<myNumber.size(); ++bitIndex )
 				{
-					assert.strictEqual(myNumber.get(bit),false,"Bit "+bit+" is not set on creation");
+					assert.equal(myNumber.get(bitIndex),testCase.substring(31-bitIndex,31-bitIndex+1),"Bit "+bitIndex+" is set correctly for the "+index+"th value");
 				}
-				assert.strictEqual(myNumber.asBinary(),"00000000000000000000000000000000","asBinary() gives the correct string");
-				assert.strictEqual(myNumber.asHex(),"00000000","asHex() gives the correct string");
-				assert.strictEqual(myNumber.asDecimal(),"0","asDecimal() gives the correct string");
-				assert.strictEqual(myNumber.asInt(),0,"asInt() gives the correct number");
-				myNumber.delete();
-			});
-			QUnit.test("Test setting to -0 by bit flip", function(assert)
-			{
-				var myNumber=new moduleInstance.FloatBits;
-				myNumber.set(31,true);
-				assert.strictEqual(myNumber.value(),-0,"has value -0");
-				// QUnit (or javascript?) cannot distinguish between + and - zero
-				//assert.notStrictEqual(myNumber.value(),0,"does not have value +0");
-				assert.strictEqual(myNumber.asBinary(),"10000000000000000000000000000000","asBinary() gives the correct string");
-				assert.strictEqual(myNumber.asHex(),"80000000","asHex() gives the correct string");
-				assert.strictEqual(myNumber.asDecimal(),"-0","asDecimal() gives the correct string");
-				// asInt() returns the unsigned int representation of the bits
-				assert.strictEqual(myNumber.asInt(),Math.pow(2,31),"asInt() does gives the correct unsigned int representation");
-				myNumber.delete();
-			});
-			QUnit.test("Test setting to an unrepresentable number (1/3)", function(assert)
-			{
-				var myNumber=new moduleInstance.FloatBits;
-				myNumber.valueFrom(1/3);
-				assert.strictEqual(myNumber.value(),0.3333333432674408,"has value 0.3333333432674408");
-				assert.strictEqual(myNumber.asBinary(),"00111110101010101010101010101011","asBinary() gives the correct string");
-				assert.strictEqual(myNumber.asHex(),"3eaaaaab","asHex() gives the correct string");
-				assert.strictEqual(myNumber.get(31),false,"Bit 31 is set correctly");
-				assert.strictEqual(myNumber.get(30),false,"Bit 30 is set correctly");
-				assert.strictEqual(myNumber.get(29),true,"Bit 29 is set correctly");
-				assert.strictEqual(myNumber.get(28),true,"Bit 28 is set correctly");
-				assert.strictEqual(myNumber.get(27),true,"Bit 27 is set correctly");
-				assert.strictEqual(myNumber.get(26),true,"Bit 26 is set correctly");
-				assert.strictEqual(myNumber.get(25),true,"Bit 25 is set correctly");
-				assert.strictEqual(myNumber.get(24),false,"Bit 24 is set correctly");
-				assert.strictEqual(myNumber.get(23),true,"Bit 23 is set correctly");
-				assert.strictEqual(myNumber.get(22),false,"Bit 22 is set correctly");
-				assert.strictEqual(myNumber.get(21),true,"Bit 21 is set correctly");
-				assert.strictEqual(myNumber.get(20),false,"Bit 20 is set correctly");
-				assert.strictEqual(myNumber.get(19),true,"Bit 19 is set correctly");
-				assert.strictEqual(myNumber.get(18),false,"Bit 18 is set correctly");
-				assert.strictEqual(myNumber.get(17),true,"Bit 17 is set correctly");
-				assert.strictEqual(myNumber.get(16),false,"Bit 16 is set correctly");
-				assert.strictEqual(myNumber.get(15),true,"Bit 15 is set correctly");
-				assert.strictEqual(myNumber.get(14),false,"Bit 14 is set correctly");
-				assert.strictEqual(myNumber.get(13),true,"Bit 13 is set correctly");
-				assert.strictEqual(myNumber.get(12),false,"Bit 12 is set correctly");
-				assert.strictEqual(myNumber.get(11),true,"Bit 11 is set correctly");
-				assert.strictEqual(myNumber.get(10),false,"Bit 10 is set correctly");
-				assert.strictEqual(myNumber.get(9),true,"Bit 9 is set correctly");
-				assert.strictEqual(myNumber.get(8),false,"Bit 8 is set correctly");
-				assert.strictEqual(myNumber.get(7),true,"Bit 7 is set correctly");
-				assert.strictEqual(myNumber.get(6),false,"Bit 6 is set correctly");
-				assert.strictEqual(myNumber.get(5),true,"Bit 5 is set correctly");
-				assert.strictEqual(myNumber.get(4),false,"Bit 4 is set correctly");
-				assert.strictEqual(myNumber.get(3),true,"Bit 3 is set correctly");
-				assert.strictEqual(myNumber.get(2),false,"Bit 2 is set correctly");
-				assert.strictEqual(myNumber.get(1),true,"Bit 1 is set correctly");
-				assert.strictEqual(myNumber.get(0),true,"Bit 0 is set correctly");
-				myNumber.delete();
-			});
-			QUnit.test("Test setting to Infinity", function(assert)
-			{
-				var myNumber=new moduleInstance.FloatBits;
-				myNumber.valueFrom( Infinity );
-				assert.strictEqual(myNumber.value(),Infinity,"value() gives the correct value");
-				assert.strictEqual(myNumber.asBinary(),"01111111100000000000000000000000","asBinary() gives the correct string");
-				assert.strictEqual(myNumber.asHex(),"7f800000","asHex() gives the correct string");
-				assert.strictEqual(myNumber.get(31),false,"Bit 31 is set correctly");
-				assert.strictEqual(myNumber.get(30),true,"Bit 30 is set correctly");
-				assert.strictEqual(myNumber.get(29),true,"Bit 29 is set correctly");
-				assert.strictEqual(myNumber.get(28),true,"Bit 28 is set correctly");
-				assert.strictEqual(myNumber.get(27),true,"Bit 27 is set correctly");
-				assert.strictEqual(myNumber.get(26),true,"Bit 26 is set correctly");
-				assert.strictEqual(myNumber.get(25),true,"Bit 25 is set correctly");
-				assert.strictEqual(myNumber.get(24),true,"Bit 24 is set correctly");
-				assert.strictEqual(myNumber.get(23),true,"Bit 23 is set correctly");
-				assert.strictEqual(myNumber.get(22),false,"Bit 22 is set correctly");
-				assert.strictEqual(myNumber.get(21),false,"Bit 21 is set correctly");
-				assert.strictEqual(myNumber.get(20),false,"Bit 20 is set correctly");
-				assert.strictEqual(myNumber.get(19),false,"Bit 19 is set correctly");
-				assert.strictEqual(myNumber.get(18),false,"Bit 18 is set correctly");
-				assert.strictEqual(myNumber.get(17),false,"Bit 17 is set correctly");
-				assert.strictEqual(myNumber.get(16),false,"Bit 16 is set correctly");
-				assert.strictEqual(myNumber.get(15),false,"Bit 15 is set correctly");
-				assert.strictEqual(myNumber.get(14),false,"Bit 14 is set correctly");
-				assert.strictEqual(myNumber.get(13),false,"Bit 13 is set correctly");
-				assert.strictEqual(myNumber.get(12),false,"Bit 12 is set correctly");
-				assert.strictEqual(myNumber.get(11),false,"Bit 11 is set correctly");
-				assert.strictEqual(myNumber.get(10),false,"Bit 10 is set correctly");
-				assert.strictEqual(myNumber.get(9),false,"Bit 9 is set correctly");
-				assert.strictEqual(myNumber.get(8),false,"Bit 8 is set correctly");
-				assert.strictEqual(myNumber.get(7),false,"Bit 7 is set correctly");
-				assert.strictEqual(myNumber.get(6),false,"Bit 6 is set correctly");
-				assert.strictEqual(myNumber.get(5),false,"Bit 5 is set correctly");
-				assert.strictEqual(myNumber.get(4),false,"Bit 4 is set correctly");
-				assert.strictEqual(myNumber.get(3),false,"Bit 3 is set correctly");
-				assert.strictEqual(myNumber.get(2),false,"Bit 2 is set correctly");
-				assert.strictEqual(myNumber.get(1),false,"Bit 1 is set correctly");
-				assert.strictEqual(myNumber.get(0),false,"Bit 0 is set correctly");
-				myNumber.delete();
-			});
-			QUnit.test("Test setting to minus Infinity", function(assert)
-			{
-				var myNumber=new moduleInstance.FloatBits;
-				myNumber.valueFrom( -Infinity );
-				assert.strictEqual(myNumber.value(),-Infinity,"value() gives the correct value");
-				assert.strictEqual(myNumber.asBinary(),"11111111100000000000000000000000","asBinary() gives the correct string");
-				assert.strictEqual(myNumber.asHex(),"ff800000","asHex() gives the correct string");
-				assert.strictEqual(myNumber.get(31),true,"Bit 31 is set correctly");
-				assert.strictEqual(myNumber.get(30),true,"Bit 30 is set correctly");
-				assert.strictEqual(myNumber.get(29),true,"Bit 29 is set correctly");
-				assert.strictEqual(myNumber.get(28),true,"Bit 28 is set correctly");
-				assert.strictEqual(myNumber.get(27),true,"Bit 27 is set correctly");
-				assert.strictEqual(myNumber.get(26),true,"Bit 26 is set correctly");
-				assert.strictEqual(myNumber.get(25),true,"Bit 25 is set correctly");
-				assert.strictEqual(myNumber.get(24),true,"Bit 24 is set correctly");
-				assert.strictEqual(myNumber.get(23),true,"Bit 23 is set correctly");
-				assert.strictEqual(myNumber.get(22),false,"Bit 22 is set correctly");
-				assert.strictEqual(myNumber.get(21),false,"Bit 21 is set correctly");
-				assert.strictEqual(myNumber.get(20),false,"Bit 20 is set correctly");
-				assert.strictEqual(myNumber.get(19),false,"Bit 19 is set correctly");
-				assert.strictEqual(myNumber.get(18),false,"Bit 18 is set correctly");
-				assert.strictEqual(myNumber.get(17),false,"Bit 17 is set correctly");
-				assert.strictEqual(myNumber.get(16),false,"Bit 16 is set correctly");
-				assert.strictEqual(myNumber.get(15),false,"Bit 15 is set correctly");
-				assert.strictEqual(myNumber.get(14),false,"Bit 14 is set correctly");
-				assert.strictEqual(myNumber.get(13),false,"Bit 13 is set correctly");
-				assert.strictEqual(myNumber.get(12),false,"Bit 12 is set correctly");
-				assert.strictEqual(myNumber.get(11),false,"Bit 11 is set correctly");
-				assert.strictEqual(myNumber.get(10),false,"Bit 10 is set correctly");
-				assert.strictEqual(myNumber.get(9),false,"Bit 9 is set correctly");
-				assert.strictEqual(myNumber.get(8),false,"Bit 8 is set correctly");
-				assert.strictEqual(myNumber.get(7),false,"Bit 7 is set correctly");
-				assert.strictEqual(myNumber.get(6),false,"Bit 6 is set correctly");
-				assert.strictEqual(myNumber.get(5),false,"Bit 5 is set correctly");
-				assert.strictEqual(myNumber.get(4),false,"Bit 4 is set correctly");
-				assert.strictEqual(myNumber.get(3),false,"Bit 3 is set correctly");
-				assert.strictEqual(myNumber.get(2),false,"Bit 2 is set correctly");
-				assert.strictEqual(myNumber.get(1),false,"Bit 1 is set correctly");
-				assert.strictEqual(myNumber.get(0),false,"Bit 0 is set correctly");
-				myNumber.delete();
-			});
-			QUnit.test("Test setting to NaN", function(assert)
-			{
-				/* NaN can potentially have many different representations. The only requirement is that
-				 * the exponent is all 1s and the mantissa has *any* non-zero value. So I'll only check
-				 * for this rather than an explicit bit representation
-				 */
-				var myNumber=new moduleInstance.FloatBits;
-				myNumber.valueFrom( NaN );
-				// For some reason the QUnit comparison can't handle numerical NaN, so I'll conver to string and compare
-				assert.strictEqual(myNumber.value().toString(),"NaN","value() gives the correct value");
-				// Check the binary string has all 1's in the exponent...
-				assert.strictEqual(myNumber.asBinary().substring(1,9),"11111111","asBinary() gives all 1's in the exponent");
-				// ...and has any non zero value in the mantissa
-				assert.notStrictEqual(myNumber.asBinary().substring(9),"00000000000000000000000","asBinary() gives a non zero mantissa");
-				// The hex string is harder to check since the hex characters cross the exponent/mantissa
-				// boundary. I'll assume if the binary string and bits are correct the hex is fine too, since
-				// equivalence to the other formats is tested elsewhere.
+				// Also check the binary string
+				assert.strictEqual(myNumber.asBinary(),testCase,"asBinary() gives the correct string for the "+index+"th value");
+			}
 
-				// Check exponent is all 1's in the bit representation
-				for( bit=30; bit>=23; --bit ) assert.strictEqual(myNumber.get(bit),true,"Bit "+bit+" is set correctly");
-				// Check if any bit is non zero in the mantissa
-				anyBitIsSet=false;
-				for( bit=22; bit>=0; --bit )
+			myNumber.delete();
+		});
+		QUnit.test("Test creation of a floating point bit representation", function(assert)
+		{
+			var myNumber=new moduleInstance.FloatBits;
+			assert.ok(myNumber,"FloatBits was created successfully");
+			assert.strictEqual(myNumber.size(),32,"FloatBits has the correct number of bits");
+			assert.strictEqual(myNumber.value(),0,"FloatBits has value 0 on creation");
+			for( bit=0; bit<myNumber.size(); ++bit)
+			{
+				assert.strictEqual(myNumber.get(bit),false,"Bit "+bit+" is not set on creation");
+			}
+			assert.strictEqual(myNumber.asBinary(),"00000000000000000000000000000000","asBinary() gives the correct string");
+			assert.strictEqual(myNumber.asHex(),"00000000","asHex() gives the correct string");
+			assert.strictEqual(myNumber.asDecimal(),"0","asDecimal() gives the correct string");
+			assert.strictEqual(myNumber.asInt(),0,"asInt() gives the correct number");
+			myNumber.delete();
+		});
+		QUnit.test("Test setting to -0 by bit flip", function(assert)
+		{
+			var myNumber=new moduleInstance.FloatBits;
+			myNumber.set(31,true);
+			assert.strictEqual(myNumber.value(),-0,"has value -0");
+			// QUnit (or javascript?) cannot distinguish between + and - zero
+			//assert.notStrictEqual(myNumber.value(),0,"does not have value +0");
+			assert.strictEqual(myNumber.asBinary(),"10000000000000000000000000000000","asBinary() gives the correct string");
+			assert.strictEqual(myNumber.asHex(),"80000000","asHex() gives the correct string");
+			assert.strictEqual(myNumber.asDecimal(),"-0","asDecimal() gives the correct string");
+			// asInt() returns the unsigned int representation of the bits
+			assert.strictEqual(myNumber.asInt(),Math.pow(2,31),"asInt() does gives the correct unsigned int representation");
+			myNumber.delete();
+		});
+		QUnit.test("Test setting to an unrepresentable number (1/3)", function(assert)
+		{
+			var myNumber=new moduleInstance.FloatBits;
+			myNumber.valueFrom(1/3);
+			assert.strictEqual(myNumber.value(),0.3333333432674408,"has value 0.3333333432674408");
+			assert.strictEqual(myNumber.asBinary(),"00111110101010101010101010101011","asBinary() gives the correct string");
+			assert.strictEqual(myNumber.asHex(),"3eaaaaab","asHex() gives the correct string");
+			assert.strictEqual(myNumber.get(31),false,"Bit 31 is set correctly");
+			assert.strictEqual(myNumber.get(30),false,"Bit 30 is set correctly");
+			assert.strictEqual(myNumber.get(29),true,"Bit 29 is set correctly");
+			assert.strictEqual(myNumber.get(28),true,"Bit 28 is set correctly");
+			assert.strictEqual(myNumber.get(27),true,"Bit 27 is set correctly");
+			assert.strictEqual(myNumber.get(26),true,"Bit 26 is set correctly");
+			assert.strictEqual(myNumber.get(25),true,"Bit 25 is set correctly");
+			assert.strictEqual(myNumber.get(24),false,"Bit 24 is set correctly");
+			assert.strictEqual(myNumber.get(23),true,"Bit 23 is set correctly");
+			assert.strictEqual(myNumber.get(22),false,"Bit 22 is set correctly");
+			assert.strictEqual(myNumber.get(21),true,"Bit 21 is set correctly");
+			assert.strictEqual(myNumber.get(20),false,"Bit 20 is set correctly");
+			assert.strictEqual(myNumber.get(19),true,"Bit 19 is set correctly");
+			assert.strictEqual(myNumber.get(18),false,"Bit 18 is set correctly");
+			assert.strictEqual(myNumber.get(17),true,"Bit 17 is set correctly");
+			assert.strictEqual(myNumber.get(16),false,"Bit 16 is set correctly");
+			assert.strictEqual(myNumber.get(15),true,"Bit 15 is set correctly");
+			assert.strictEqual(myNumber.get(14),false,"Bit 14 is set correctly");
+			assert.strictEqual(myNumber.get(13),true,"Bit 13 is set correctly");
+			assert.strictEqual(myNumber.get(12),false,"Bit 12 is set correctly");
+			assert.strictEqual(myNumber.get(11),true,"Bit 11 is set correctly");
+			assert.strictEqual(myNumber.get(10),false,"Bit 10 is set correctly");
+			assert.strictEqual(myNumber.get(9),true,"Bit 9 is set correctly");
+			assert.strictEqual(myNumber.get(8),false,"Bit 8 is set correctly");
+			assert.strictEqual(myNumber.get(7),true,"Bit 7 is set correctly");
+			assert.strictEqual(myNumber.get(6),false,"Bit 6 is set correctly");
+			assert.strictEqual(myNumber.get(5),true,"Bit 5 is set correctly");
+			assert.strictEqual(myNumber.get(4),false,"Bit 4 is set correctly");
+			assert.strictEqual(myNumber.get(3),true,"Bit 3 is set correctly");
+			assert.strictEqual(myNumber.get(2),false,"Bit 2 is set correctly");
+			assert.strictEqual(myNumber.get(1),true,"Bit 1 is set correctly");
+			assert.strictEqual(myNumber.get(0),true,"Bit 0 is set correctly");
+			myNumber.delete();
+		});
+		QUnit.test("Test setting to Infinity", function(assert)
+		{
+			var myNumber=new moduleInstance.FloatBits;
+			myNumber.valueFrom( Infinity );
+			assert.strictEqual(myNumber.value(),Infinity,"value() gives the correct value");
+			assert.strictEqual(myNumber.asBinary(),"01111111100000000000000000000000","asBinary() gives the correct string");
+			assert.strictEqual(myNumber.asHex(),"7f800000","asHex() gives the correct string");
+			assert.strictEqual(myNumber.get(31),false,"Bit 31 is set correctly");
+			assert.strictEqual(myNumber.get(30),true,"Bit 30 is set correctly");
+			assert.strictEqual(myNumber.get(29),true,"Bit 29 is set correctly");
+			assert.strictEqual(myNumber.get(28),true,"Bit 28 is set correctly");
+			assert.strictEqual(myNumber.get(27),true,"Bit 27 is set correctly");
+			assert.strictEqual(myNumber.get(26),true,"Bit 26 is set correctly");
+			assert.strictEqual(myNumber.get(25),true,"Bit 25 is set correctly");
+			assert.strictEqual(myNumber.get(24),true,"Bit 24 is set correctly");
+			assert.strictEqual(myNumber.get(23),true,"Bit 23 is set correctly");
+			assert.strictEqual(myNumber.get(22),false,"Bit 22 is set correctly");
+			assert.strictEqual(myNumber.get(21),false,"Bit 21 is set correctly");
+			assert.strictEqual(myNumber.get(20),false,"Bit 20 is set correctly");
+			assert.strictEqual(myNumber.get(19),false,"Bit 19 is set correctly");
+			assert.strictEqual(myNumber.get(18),false,"Bit 18 is set correctly");
+			assert.strictEqual(myNumber.get(17),false,"Bit 17 is set correctly");
+			assert.strictEqual(myNumber.get(16),false,"Bit 16 is set correctly");
+			assert.strictEqual(myNumber.get(15),false,"Bit 15 is set correctly");
+			assert.strictEqual(myNumber.get(14),false,"Bit 14 is set correctly");
+			assert.strictEqual(myNumber.get(13),false,"Bit 13 is set correctly");
+			assert.strictEqual(myNumber.get(12),false,"Bit 12 is set correctly");
+			assert.strictEqual(myNumber.get(11),false,"Bit 11 is set correctly");
+			assert.strictEqual(myNumber.get(10),false,"Bit 10 is set correctly");
+			assert.strictEqual(myNumber.get(9),false,"Bit 9 is set correctly");
+			assert.strictEqual(myNumber.get(8),false,"Bit 8 is set correctly");
+			assert.strictEqual(myNumber.get(7),false,"Bit 7 is set correctly");
+			assert.strictEqual(myNumber.get(6),false,"Bit 6 is set correctly");
+			assert.strictEqual(myNumber.get(5),false,"Bit 5 is set correctly");
+			assert.strictEqual(myNumber.get(4),false,"Bit 4 is set correctly");
+			assert.strictEqual(myNumber.get(3),false,"Bit 3 is set correctly");
+			assert.strictEqual(myNumber.get(2),false,"Bit 2 is set correctly");
+			assert.strictEqual(myNumber.get(1),false,"Bit 1 is set correctly");
+			assert.strictEqual(myNumber.get(0),false,"Bit 0 is set correctly");
+			myNumber.delete();
+		});
+		QUnit.test("Test setting to minus Infinity", function(assert)
+		{
+			var myNumber=new moduleInstance.FloatBits;
+			myNumber.valueFrom( -Infinity );
+			assert.strictEqual(myNumber.value(),-Infinity,"value() gives the correct value");
+			assert.strictEqual(myNumber.asBinary(),"11111111100000000000000000000000","asBinary() gives the correct string");
+			assert.strictEqual(myNumber.asHex(),"ff800000","asHex() gives the correct string");
+			assert.strictEqual(myNumber.get(31),true,"Bit 31 is set correctly");
+			assert.strictEqual(myNumber.get(30),true,"Bit 30 is set correctly");
+			assert.strictEqual(myNumber.get(29),true,"Bit 29 is set correctly");
+			assert.strictEqual(myNumber.get(28),true,"Bit 28 is set correctly");
+			assert.strictEqual(myNumber.get(27),true,"Bit 27 is set correctly");
+			assert.strictEqual(myNumber.get(26),true,"Bit 26 is set correctly");
+			assert.strictEqual(myNumber.get(25),true,"Bit 25 is set correctly");
+			assert.strictEqual(myNumber.get(24),true,"Bit 24 is set correctly");
+			assert.strictEqual(myNumber.get(23),true,"Bit 23 is set correctly");
+			assert.strictEqual(myNumber.get(22),false,"Bit 22 is set correctly");
+			assert.strictEqual(myNumber.get(21),false,"Bit 21 is set correctly");
+			assert.strictEqual(myNumber.get(20),false,"Bit 20 is set correctly");
+			assert.strictEqual(myNumber.get(19),false,"Bit 19 is set correctly");
+			assert.strictEqual(myNumber.get(18),false,"Bit 18 is set correctly");
+			assert.strictEqual(myNumber.get(17),false,"Bit 17 is set correctly");
+			assert.strictEqual(myNumber.get(16),false,"Bit 16 is set correctly");
+			assert.strictEqual(myNumber.get(15),false,"Bit 15 is set correctly");
+			assert.strictEqual(myNumber.get(14),false,"Bit 14 is set correctly");
+			assert.strictEqual(myNumber.get(13),false,"Bit 13 is set correctly");
+			assert.strictEqual(myNumber.get(12),false,"Bit 12 is set correctly");
+			assert.strictEqual(myNumber.get(11),false,"Bit 11 is set correctly");
+			assert.strictEqual(myNumber.get(10),false,"Bit 10 is set correctly");
+			assert.strictEqual(myNumber.get(9),false,"Bit 9 is set correctly");
+			assert.strictEqual(myNumber.get(8),false,"Bit 8 is set correctly");
+			assert.strictEqual(myNumber.get(7),false,"Bit 7 is set correctly");
+			assert.strictEqual(myNumber.get(6),false,"Bit 6 is set correctly");
+			assert.strictEqual(myNumber.get(5),false,"Bit 5 is set correctly");
+			assert.strictEqual(myNumber.get(4),false,"Bit 4 is set correctly");
+			assert.strictEqual(myNumber.get(3),false,"Bit 3 is set correctly");
+			assert.strictEqual(myNumber.get(2),false,"Bit 2 is set correctly");
+			assert.strictEqual(myNumber.get(1),false,"Bit 1 is set correctly");
+			assert.strictEqual(myNumber.get(0),false,"Bit 0 is set correctly");
+			myNumber.delete();
+		});
+		QUnit.test("Test setting to NaN", function(assert)
+		{
+			/* NaN can potentially have many different representations. The only requirement is that
+			 * the exponent is all 1s and the mantissa has *any* non-zero value. So I'll only check
+			 * for this rather than an explicit bit representation
+			 */
+			var myNumber=new moduleInstance.FloatBits;
+			myNumber.valueFrom( NaN );
+			// For some reason the QUnit comparison can't handle numerical NaN, so I'll conver to string and compare
+			assert.strictEqual(myNumber.value().toString(),"NaN","value() gives the correct value");
+			// Check the binary string has all 1's in the exponent...
+			assert.strictEqual(myNumber.asBinary().substring(1,9),"11111111","asBinary() gives all 1's in the exponent");
+			// ...and has any non zero value in the mantissa
+			assert.notStrictEqual(myNumber.asBinary().substring(9),"00000000000000000000000","asBinary() gives a non zero mantissa");
+			// The hex string is harder to check since the hex characters cross the exponent/mantissa
+			// boundary. I'll assume if the binary string and bits are correct the hex is fine too, since
+			// equivalence to the other formats is tested elsewhere.
+
+			// Check exponent is all 1's in the bit representation
+			for( bit=30; bit>=23; --bit ) assert.strictEqual(myNumber.get(bit),true,"Bit "+bit+" is set correctly");
+			// Check if any bit is non zero in the mantissa
+			anyBitIsSet=false;
+			for( bit=22; bit>=0; --bit )
+			{
+				if( myNumber.get(bit)===true ) anyBitIsSet=true;
+			}
+			assert.strictEqual(anyBitIsSet,true,"Any bit in the mantissa is set");
+			myNumber.delete();
+		});
+		QUnit.test("Test setting to various arbitrary pre-checked numbers", function(assert)
+		{
+			/* Note that some of these numbers can't be represented exactly as single point
+			 * numbers, so
+			 *
+			 *    myNumber.valueFrom( testCase[0] ).value() == testCase[0]
+			 *
+			 * does not hold in all cases. This isn't part of this test however.
+			 */
+			var predefinedNumbers=[ [1.4513413,"00111111101110011100010110001101","3fb9c58d"],
+			                        [-32,"11000010000000000000000000000000","c2000000"],
+			                        [-234.2349245,"11000011011010100011110000100100","c36a3c24"],
+			                        [2984590234981719,"01011001001010011010011110000001","5929a781"],
+			                        [2.45678e-32,"00001010111111110010000001101010","0aff206a"],
+			                        [29834e32,"01111100000011111010010100111110","7c0fa53e"],
+			                        [239248,"01001000011010011010010000000000","4869a400"],
+			                        [0.138128763,"00111110000011010111000110100000","3e0d71a0"],
+			                        [2342399.12349,"01001010000011101111011111111100","4a0ef7fc"]];
+
+			var myNumber=new moduleInstance.FloatBits;
+
+			for( index=0; index<predefinedNumbers.length; ++index )
+			{
+				testCase=predefinedNumbers[index];
+				myNumber.valueFrom( testCase[0] );
+				assert.strictEqual(myNumber.asBinary(),testCase[1],"asBinary() gives the correct string for value "+testCase[0]);
+				assert.strictEqual(myNumber.asHex(),testCase[2],"asHex() gives the correct string for value "+testCase[0]);
+				// To test the bits, loop through the characters in the expected binary string
+				for( bitIndex=0; bitIndex<myNumber.size(); ++bitIndex )
 				{
-					if( myNumber.get(bit)===true ) anyBitIsSet=true;
+					assert.equal(myNumber.get(bitIndex),testCase[1].substring(31-bitIndex,31-bitIndex+1),"Bit "+bitIndex+" is set correctly for value "+testCase[0]);
 				}
-				assert.strictEqual(anyBitIsSet,true,"Any bit in the mantissa is set");
-				myNumber.delete();
-			});
-			QUnit.test("Test setting to various arbitrary pre-checked numbers", function(assert)
+			}
+
+			myNumber.delete();
+		});
+		QUnit.test("Test setting invalid bit numbers", function(assert)
+		{
+			var myNumber=new moduleInstance.FloatBits;
+
+			// Set the number to an arbitrary value to start off with
+			myNumber.valueFrom(48);
+			// Take a record of the bits to make sure they don't change
+			expectedBinary=myNumber.asBinary();
+			// Try setting some invalid bit numbers
+			for( bit=32; bit<50; ++bit )
 			{
-				/* Note that some of these numbers can't be represented exactly as single point
-				 * numbers, so
-				 *
-				 *    myNumber.valueFrom( testCase[0] ).value() == testCase[0]
-				 *
-				 * does not hold in all cases. This isn't part of this test however.
-				 */
-				var predefinedNumbers=[ [1.4513413,"00111111101110011100010110001101","3fb9c58d"],
-				                        [-32,"11000010000000000000000000000000","c2000000"],
-				                        [-234.2349245,"11000011011010100011110000100100","c36a3c24"],
-				                        [2984590234981719,"01011001001010011010011110000001","5929a781"],
-				                        [2.45678e-32,"00001010111111110010000001101010","0aff206a"],
-				                        [29834e32,"01111100000011111010010100111110","7c0fa53e"],
-				                        [239248,"01001000011010011010010000000000","4869a400"],
-				                        [0.138128763,"00111110000011010111000110100000","3e0d71a0"],
-				                        [2342399.12349,"01001010000011101111011111111100","4a0ef7fc"]];
-
-				var myNumber=new moduleInstance.FloatBits;
-
-				for( index=0; index<predefinedNumbers.length; ++index )
-				{
-					testCase=predefinedNumbers[index];
-					myNumber.valueFrom( testCase[0] );
-					assert.strictEqual(myNumber.asBinary(),testCase[1],"asBinary() gives the correct string for value "+testCase[0]);
-					assert.strictEqual(myNumber.asHex(),testCase[2],"asHex() gives the correct string for value "+testCase[0]);
-					// To test the bits, loop through the characters in the expected binary string
-					for( bitIndex=0; bitIndex<myNumber.size(); ++bitIndex )
-					{
-						assert.equal(myNumber.get(bitIndex),testCase[1].substring(31-bitIndex,31-bitIndex+1),"Bit "+bitIndex+" is set correctly for value "+testCase[0]);
-					}
-				}
-
-				myNumber.delete();
-			});
-			QUnit.test("Test setting invalid bit numbers", function(assert)
+				myNumber.set(bit,true);
+				assert.strictEqual(myNumber.asBinary(),expectedBinary,"Setting bit "+bit+" to true does not change the value");
+				myNumber.set(bit,false);
+				assert.strictEqual(myNumber.asBinary(),expectedBinary,"Setting bit "+bit+" to false does not change the value");
+			}
+			// When using negative indices, although the C++ code doesn't throw the binding
+			// code sees that the supplied number is not unsigned and throws an exception.
+			for( bit=-32; bit<0; ++bit )
 			{
-				var myNumber=new moduleInstance.FloatBits;
+				assert.throws( function(){myNumber.set(bit,true)}, function(){return true}, "Setting bit "+bit+" throws an error" );
+				assert.strictEqual(myNumber.asBinary(),expectedBinary,"Setting bit "+bit+" to true does not change the value");
+			}
 
-				// Set the number to an arbitrary value to start off with
-				myNumber.valueFrom(48);
-				// Take a record of the bits to make sure they don't change
-				expectedBinary=myNumber.asBinary();
-				// Try setting some invalid bit numbers
-				for( bit=32; bit<50; ++bit )
-				{
-					myNumber.set(bit,true);
-					assert.strictEqual(myNumber.asBinary(),expectedBinary,"Setting bit "+bit+" to true does not change the value");
-					myNumber.set(bit,false);
-					assert.strictEqual(myNumber.asBinary(),expectedBinary,"Setting bit "+bit+" to false does not change the value");
-				}
-				// When using negative indices, although the C++ code doesn't throw the binding
-				// code sees that the supplied number is not unsigned and throws an exception.
-				for( bit=-32; bit<0; ++bit )
-				{
-					assert.throws( function(){myNumber.set(bit,true)}, function(){return true}, "Setting bit "+bit+" throws an error" );
-					assert.strictEqual(myNumber.asBinary(),expectedBinary,"Setting bit "+bit+" to true does not change the value");
-				}
+			myNumber.delete();
+		});
+		QUnit.test("Test the asInt() function", function(assert)
+		{
+			var myNumber=new moduleInstance.FloatBits;
 
-				myNumber.delete();
-			});
-			QUnit.test("Test the asInt() function", function(assert)
-			{
-				var myNumber=new moduleInstance.FloatBits;
-
-				myNumber.valueFrom(1);
-				assert.strictEqual(myNumber.asInt(),1065353216,"The bit representation to integer works correctly");
-				myNumber.delete();
-			});
-		} );
+			myNumber.valueFrom(1);
+			assert.strictEqual(myNumber.asInt(),1065353216,"The bit representation to integer works correctly");
+			myNumber.delete();
+		});
 	</script>
 </body>
 </html>
