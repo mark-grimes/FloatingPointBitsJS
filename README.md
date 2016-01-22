@@ -4,6 +4,8 @@ This is a simple library to calculate single precision floating point (IEEE 754)
 particular bits. It is written in C++ to be compiled to Javascript with [Emscripten](https://kripken.github.io/emscripten-site/index.html).
 Building instructions are at the bottom of the file.
 
+**Important:** If you are deploying to a webserver you need both the FloatingPoint.js and FloatingPoint.js.mem files.
+
 ## Using the javascript files
 
 #### The FloatBits class
