@@ -31,16 +31,22 @@ ENDIF()
 SET( EMCXX "${EMSCRIPTEN_ROOT_PATH}/em++" )
 SET( EMCC "${EMSCRIPTEN_ROOT_PATH}/emcc" )
 
-SET( CLIENT_CODE_DIR "www" )
+SET( CLIENT_CODE_DIR "${CMAKE_BINARY_DIR}/www" )
 SET( client_destination_file "${CLIENT_CODE_DIR}/FloatingPoint.js" )
-SET( html_destination_file "${CLIENT_CODE_DIR}/Example.html" )
+SET( CLIENT_STATIC_FILES "Example.html" )
 
 add_custom_command( OUTPUT ${CLIENT_CODE_DIR}
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${CLIENT_CODE_DIR} )
 
-add_custom_command( OUTPUT ${html_destination_file}
-	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Example.html ${html_destination_file}
-	DEPENDS Example.html ${CLIENT_CODE_DIR} )
+foreach( FILE ${CLIENT_STATIC_FILES} )
+	SET( INPUT_FILE "${CMAKE_SOURCE_DIR}/${FILE}" )
+	SET( OUTPUT_FILE "${CLIENT_CODE_DIR}/${FILE}" )
+
+	add_custom_command( OUTPUT ${OUTPUT_FILE}
+		COMMAND ${CMAKE_COMMAND} -E copy "${INPUT_FILE}" "${OUTPUT_FILE}"
+		DEPENDS ${INPUT_FILE} ${CLIENT_CODE_DIR} )
+	list( APPEND CLIENT_STATIC_OUTPUT "${OUTPUT_FILE}" )
+endforeach( FILE )
 
 add_custom_command( OUTPUT ${client_destination_file}
 	COMMAND ${EMCXX} -O3 ${client_source_files} -o ${client_destination_file}
@@ -51,4 +57,5 @@ add_custom_command( OUTPUT ${client_destination_file}
 		-I ${CMAKE_SOURCE_DIR}
 	DEPENDS ${client_source_files} ${CLIENT_CODE_DIR} )
 
-ADD_EXECUTABLE( ${PROJECT_NAME} ${source_files} ${client_destination_file} ${html_destination_file} )
+add_custom_target( "${PROJECT_NAME}ClientCode" ALL DEPENDS ${CLIENT_STATIC_OUTPUT} ${client_destination_file} )
+#ADD_EXECUTABLE( ${PROJECT_NAME} ${source_files} ${client_destination_file} ${CLIENT_STATIC_OUTPUT} )
