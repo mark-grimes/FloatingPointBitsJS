@@ -1,3 +1,11 @@
+/** @file
+ *
+ * Embind code for all C++ code required by the client.
+ *
+ * @author Mark Grimes
+ * @copyright MIT licence, see http://opensource.org/licenses/MIT
+ * @date 20/Jan/2016
+ */
 #ifdef __EMSCRIPTEN__
 #include <emscripten/bind.h>
 #include "FloatBits.h"

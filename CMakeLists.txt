@@ -2,6 +2,7 @@
 # CMake file to build FloatingPoint.
 # Mark Grimes
 # 19/Jan/2016
+# MIT licence, see http://opensource.org/licenses/MIT
 #
 
 PROJECT( FloatingPoint )
