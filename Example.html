@@ -24,6 +24,12 @@
 	// created once everything has been loaded, e.g. in the init
 	// function.
 	var floatNumber;
+	// Note that in most browsers a 'window.addEventListener("load", init, false);'
+	// line would be sufficient to make sure the module has been loaded.
+	// For some reason Chrome can fire the onload event early however. To
+	// get around this add a special "onRuntimeInitialized" function to
+	// moduleInstance that will be called automatically.
+	moduleInstance.onRuntimeInitialized=function() { init(); };
 
 	function init()
 	{
@@ -98,7 +104,6 @@
 		document.getElementById("decimal").value=asString;
 	}
 
-	window.addEventListener("load", init, false);
 </script>
 <h2>Simple example of using the FloatingPoint library to find floats from their binary representation</h2>
 <p>
