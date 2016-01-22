@@ -16,7 +16,6 @@ SET( ${PROJECT_NAME}_PATCH_LEVEL 0 )
 ADD_DEFINITIONS( "-std=c++11" )
 
 INCLUDE_DIRECTORIES( "${CMAKE_SOURCE_DIR}" )
-AUX_SOURCE_DIRECTORY( "${CMAKE_SOURCE_DIR}" source_files )
 
 # Add specific subset of the source files to the client code
 SET( client_source_files "${CMAKE_SOURCE_DIR}/client.cpp" "${CMAKE_SOURCE_DIR}/FloatBits.cpp" )
@@ -58,4 +57,3 @@ add_custom_command( OUTPUT ${client_destination_file}
 	DEPENDS ${client_source_files} ${CLIENT_CODE_DIR} )
 
 add_custom_target( "${PROJECT_NAME}ClientCode" ALL DEPENDS ${CLIENT_STATIC_OUTPUT} ${client_destination_file} )
-#ADD_EXECUTABLE( ${PROJECT_NAME} ${source_files} ${client_destination_file} ${CLIENT_STATIC_OUTPUT} )
