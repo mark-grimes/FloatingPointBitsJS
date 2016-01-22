@@ -12,7 +12,7 @@
 
 bool FloatBits::get( size_t bit ) const
 {
-	if( bit<size() ) return false;
+	if( bit>=size() ) return false;
 	return bits_[bit];
 }
 
