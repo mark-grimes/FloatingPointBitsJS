@@ -33,7 +33,7 @@ SET( EMCC "${EMSCRIPTEN_ROOT_PATH}/emcc" )
 
 SET( CLIENT_CODE_DIR "${CMAKE_BINARY_DIR}/www" )
 SET( client_destination_file "${CLIENT_CODE_DIR}/FloatingPoint.js" )
-SET( CLIENT_STATIC_FILES "Example.html" )
+SET( CLIENT_STATIC_FILES "Example.html" "Tests.html" )
 
 add_custom_command( OUTPUT ${CLIENT_CODE_DIR}
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${CLIENT_CODE_DIR} )
