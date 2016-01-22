@@ -8,7 +8,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>QUnit basic example</title>
+	<title>QUnit tests for FloatingPoint library</title>
 	<link rel="stylesheet" href="//code.jquery.com/qunit/qunit-1.20.0.css">
 </head>
 <body>
@@ -24,12 +24,40 @@
 		// runs once the module has loaded.
 		window.addEventListener("load", function()
 		{
-			/*
-				While creating these tests I found this awk command useful to create the bit checks:
-					echo "00111110101010101010101010101011" | awk '{split($0,myResult,""); for(bit=31;bit>=0;--bit) {line="assert.strictEqual(myNumber.get("bit"),"; if(myResult[31-bit+1]=="1") line=line"true"; else line=line"false"; line=line",\"Bit "bit" is set correctly\");"; print line}}'
-				just copy the expected binary string into the first bit, and it'll print out the correct
-				tests on the bits.
-			 */
+			QUnit.test("Make sure the bit getters and setters work properly", function(assert)
+			{
+				/* Use some predefined strings of bit representations to make sure setting bits works,
+				 * and that retrieving them gives the correct result. Also check the binary string
+				 * returned is correct
+				 */
+				var testNumbers=[ "00111111101110011100010110001101","11000010000000000000000000000000",
+				                  "11000011011010100011110000100100","01011001001010011010011110000001",
+				                  "00001010111111110010000001101010","01111100000011111010010100111110",
+				                  "01001000011010011010010000000000","00111110000011010111000110100000",
+				                  "01001010000011101111011111111100","11111111100000000000000000000000"];
+
+				var myNumber=new moduleInstance.FloatBits;
+
+				for( index=0; index<testNumbers.length; ++index )
+				{
+					testCase=testNumbers[index];
+					// Set all the bits
+					for( bitIndex=0; bitIndex<myNumber.size(); ++bitIndex )
+					{
+						if( testCase.substring(31-bitIndex,31-bitIndex+1)=="1" ) myNumber.set(bitIndex,true);
+						else myNumber.set(bitIndex,false);
+					}
+					// Then check they were all set correctly
+					for( bitIndex=0; bitIndex<myNumber.size(); ++bitIndex )
+					{
+						assert.equal(myNumber.get(bitIndex),testCase.substring(31-bitIndex,31-bitIndex+1),"Bit "+bitIndex+" is set correctly for the "+index+"th value");
+					}
+					// Also check the binary string
+					assert.strictEqual(myNumber.asBinary(),testCase,"asBinary() gives the correct string for the "+index+"th value");
+				}
+
+				myNumber.delete();
+			});
 			QUnit.test("Test creation of a floating point bit representation", function(assert)
 			{
 				var myNumber=new moduleInstance.FloatBits;
@@ -230,9 +258,9 @@
 				                        [239248,"01001000011010011010010000000000","4869a400"],
 				                        [0.138128763,"00111110000011010111000110100000","3e0d71a0"],
 				                        [2342399.12349,"01001010000011101111011111111100","4a0ef7fc"]];
-				
+
 				var myNumber=new moduleInstance.FloatBits;
-				
+
 				for( index=0; index<predefinedNumbers.length; ++index )
 				{
 					testCase=predefinedNumbers[index];
@@ -245,10 +273,43 @@
 						assert.equal(myNumber.get(bitIndex),testCase[1].substring(31-bitIndex,31-bitIndex+1),"Bit "+bitIndex+" is set correctly for value "+testCase[0]);
 					}
 				}
-				
+
 				myNumber.delete();
 			});
+			QUnit.test("Test setting invalid bit numbers", function(assert)
+			{
+				var myNumber=new moduleInstance.FloatBits;
 
+				// Set the number to an arbitrary value to start off with
+				myNumber.valueFrom(48);
+				// Take a record of the bits to make sure they don't change
+				expectedBinary=myNumber.asBinary();
+				// Try setting some invalid bit numbers
+				for( bit=32; bit<50; ++bit )
+				{
+					myNumber.set(bit,true);
+					assert.strictEqual(myNumber.asBinary(),expectedBinary,"Setting bit "+bit+" to true does not change the value");
+					myNumber.set(bit,false);
+					assert.strictEqual(myNumber.asBinary(),expectedBinary,"Setting bit "+bit+" to false does not change the value");
+				}
+				// When using negative indices, although the C++ code doesn't throw the binding
+				// code sees that the supplied number is not unsigned and throws an exception.
+				for( bit=-32; bit<0; ++bit )
+				{
+					assert.throws( function(){myNumber.set(bit,true)}, function(){return true}, "Setting bit "+bit+" throws an error" );
+					assert.strictEqual(myNumber.asBinary(),expectedBinary,"Setting bit "+bit+" to true does not change the value");
+				}
+
+				myNumber.delete();
+			});
+			QUnit.test("Test the asInt() function", function(assert)
+			{
+				var myNumber=new moduleInstance.FloatBits;
+
+				myNumber.valueFrom(1);
+				assert.strictEqual(myNumber.asInt(),1065353216,"The bit representation to integer works correctly");
+				myNumber.delete();
+			});
 		} );
 	</script>
 </body>
