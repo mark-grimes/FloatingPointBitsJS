@@ -1,3 +1,11 @@
+/** @file
+ *
+ * Source file for the FloatBits class.
+ *
+ * @author Mark Grimes
+ * @copyright MIT licence, see http://opensource.org/licenses/MIT
+ * @date 19/Jan/2016
+ */
 #include "FloatBits.h"
 #include <sstream>
 #include <iomanip>

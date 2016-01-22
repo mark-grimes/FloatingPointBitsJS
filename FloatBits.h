@@ -1,3 +1,11 @@
+/** @file
+ *
+ * Header file for the FloatBit class.
+ *
+ * @author Mark Grimes
+ * @copyright MIT licence, see http://opensource.org/licenses/MIT
+ * @date 19/Jan/2016
+ */
 #ifndef INCLUDEGUARD_FloatBits_h
 #define INCLUDEGUARD_FloatBits_h
 
