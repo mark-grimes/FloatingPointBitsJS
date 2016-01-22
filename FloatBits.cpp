@@ -4,12 +4,13 @@
 
 bool FloatBits::get( size_t bit ) const
 {
+	if( bit<size() ) return false;
 	return bits_[bit];
 }
 
 void FloatBits::set( size_t bit, bool value )
 {
-	bits_[bit]=value;
+	if( bit<size() ) bits_[bit]=value;
 }
 
 void FloatBits::valueFrom( float value )
