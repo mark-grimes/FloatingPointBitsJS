@@ -28,6 +28,12 @@
 		QUnit.config.autostart = false;
 		moduleInstance.onRuntimeInitialized=function() { QUnit.start(); };
 
+		QUnit.test("Make sure the size is 32 bits", function(assert)
+		{
+			var myNumber=new moduleInstance.FloatBits;
+			assert.strictEqual(myNumber.size(),32,"size() returns 32");
+			myNumber.delete();
+		});
 		QUnit.test("Make sure the bit getters and setters work properly", function(assert)
 		{
 			/* Use some predefined strings of bit representations to make sure setting bits works,
